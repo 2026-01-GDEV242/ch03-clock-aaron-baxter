@@ -1,4 +1,3 @@
-
 /**
  * 12 HOUR INTERNAL BRANCH
  * 
@@ -18,8 +17,9 @@
  */
 public class ClockDisplay
 {
-    private NumberDisplay hours;
-    private NumberDisplay minutes;
+    private NumberDisplay hours;     // internal range: 0-11 (0 means 12)
+    private NumberDisplay minutes;   // internal range: 0-59
+    private boolean isPM;            // false = AM, true = PM
     private String displayString;    // simulates the actual display
     
     /**
@@ -28,8 +28,9 @@ public class ClockDisplay
      */
     public ClockDisplay()
     {
-        hours = new NumberDisplay(24);
+        hours = new NumberDisplay(12);
         minutes = new NumberDisplay(60);
+        isPM = false; //AM
         updateDisplay();
     }
 
@@ -37,10 +38,11 @@ public class ClockDisplay
      * Constructor for ClockDisplay objects. This constructor
      * creates a new clock set at the time specified by the 
      * parameters.
+     * 
      */
     public ClockDisplay(int hour, int minute)
     {
-        hours = new NumberDisplay(24);
+        hours = new NumberDisplay(12);
         minutes = new NumberDisplay(60);
         setTime(hour, minute);
     }
@@ -54,6 +56,11 @@ public class ClockDisplay
         minutes.increment();
         if(minutes.getValue() == 0) {  // it just rolled over!
             hours.increment();
+            
+            // Rolling from 11 -> 0 means 12, and that transition flips AM <-> PM.
+            if(hours.getValue() == 0) {
+                isPM = !isPM;
+            }
         }
         updateDisplay();
     }
@@ -64,7 +71,13 @@ public class ClockDisplay
      */
     public void setTime(int hour, int minute)
     {
-        hours.setValue(hour);
+        // Determine AM/PM first (12-23 is PM, 0-11 is AM)
+        isPM = (hour >= 12);
+        
+        // Convert 24-hour to internal 12-hour representation (0-11)
+        int internalHour = hour % 12;
+        
+        hours.setValue(internalHour);
         minutes.setValue(minute);
         updateDisplay();
     }
@@ -82,7 +95,13 @@ public class ClockDisplay
      */
     private void updateDisplay()
     {
-        displayString = hours.getDisplayValue() + ":" + 
-                        minutes.getDisplayValue();
+        int h = hours.getValue();
+        int displayHour = (h == 0) ? 12 : h;
+        
+        // Force the hour display to be 2 digits (01-12)
+        String hourString = (displayHour < 10) ? ("0" + displayHour) : ("" + displayHour);
+        
+        displayString = hourString + ":" + minutes.getDisplayValue() + 
+                        (isPM ? " PM" : " AM");
     }
 }
