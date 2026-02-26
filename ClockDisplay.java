@@ -82,7 +82,15 @@ public class ClockDisplay
      */
     private void updateDisplay()
     {
-        displayString = hours.getDisplayValue() + ":" + 
-                        minutes.getDisplayValue();
+        int h24 = hours.getValue();
+        String suffix = (h24 < 12) ? "AM" : "PM";
+        
+        // Convert 0 -> 12AM, 13 -> 1PM, etc.
+        int h12 = h24 % 12;
+        if(h12 == 0) {
+            h12 = 12;
+        }
+        
+        displayString = h12 + ":" + minutes.getDisplayValue() + " " + suffix;
     }
 }
